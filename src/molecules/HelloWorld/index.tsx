@@ -1,14 +1,15 @@
-import React from "react"
+/* eslint-disable import/prefer-default-export */
+import React from 'react';
 
 interface HelloWorldProps {
-    isRed?: boolean
+  isRed?: boolean;
 }
 
-export const HelloWorld: React.FC<HelloWorldProps> = (props) => {
-    const { isRed } = props;
-    return (
-        <>
-            <div className={`${isRed === true ? "text-red-800" : ""}`}>Hello world!</div>
-        </>
-    )
+export function HelloWorld(props: HelloWorldProps = { isRed: false }) {
+  const { isRed } = props;
+  return (
+    <div className={`${isRed === true ? 'text-red-800' : ''}`}>
+      Hello world!
+    </div>
+  );
 }
