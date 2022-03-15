@@ -1,0 +1,44 @@
+name: Auto Deploy
+on: [push, workflow_dispatch]
+jobs:
+  Auto-Deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: executing remote ssh commands using password
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          port: ${{ secrets.PORT }}
+          script: |
+            cd /code/ci/notify
+            python3 notify.py --name "Cloud Autotest Web" --type "log" --message "Deploying website..." --hook "cloud-autotest-web"
+            cd /code/cloud-autotest-web
+            git checkout master
+            git reset --hard
+            git pull --rebase
+            if [ $? -ne "0" ];
+            then
+              cd /code/ci/notify
+              python3 notify.py --name "Cloud Autotest Web" --type "fatal" --message "Deployment was unsuccessful: Git pull." --hook "cloud-autotest-web"
+              exit 1
+            fi
+            yarn
+            if [ $? -ne "0" ];
+            then
+              cd /code/ci/notify
+              python3 notify.py --name "Cloud Autotest Web" --type "fatal" --message "Deployment was unsuccessful: YARN." --hook "cloud-autotest-web"
+              exit 1
+            fi
+            yarn build
+            if [ $? -ne "0" ];
+            then
+              cd /code/ci/notify
+              python3 notify.py --name "Cloud Autotest Web" --type "fatal" --message "Deployment was unsuccessful: Failed to build." --hook "cloud-autotest-web"
+              exit 1
+            else
+              cd /code/ci/notify
+              python3 notify.py --name "Cloud Autotest Web" --type "info" --message "Deployment was successful." --hook "cloud-autotest-web"
+              exit 0
+            fi
